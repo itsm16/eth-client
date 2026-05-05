@@ -10,44 +10,41 @@ import { Toaster } from './components/ui/sonner'
 import { useQuery } from '@tanstack/react-query'
 import { getMe } from './utils/query-functions'
 import Home from './components/pages/home'
-import { Test } from './components/pages/test'
 import Dashboard from './components/pages/dashboard'
 import { AdminPanel } from './components/pages/admin-panel'
 
 export default function App() {
 
-  // const { setUser } = useUserStore(state => state)
-  // const { isLoading, text } = useLoaderStore(state => state)
-  // const { data: nested, isPending, isError } = useQuery({ queryFn: () => getMe(), queryKey: ["user", "me"], refetchOnMount: true })
-  // const navigate = useNavigate()
+  const { user, setUser } = useUserStore(state => state)
+  const { isLoading, text } = useLoaderStore(state => state)
+  const { data: nested, isPending, isError } = useQuery({ queryFn: () => getMe(), queryKey: ["user", "me"], refetchOnMount: true, retry: false })
+  const navigate = useNavigate()
 
-  // useEffect(() => {
-  //   if (isError) {
-  //     navigate("/login");
-  //   }
-  // }, [isError]);
+  useEffect(() => {
+    if (isError) {
+      navigate("/login");
+    }
+  }, [isError]);
 
-  // useEffect(() => {
-  //   if (nested?.data?.data) {
-  //     setUser(nested.data.data);
-  //     navigate("/");
-  //   }
-  // }, [nested]);
-
-  const isAdmin = true;
+  useEffect(() => {
+    if (nested?.data?.data) {
+      setUser(nested.data.data);
+      navigate("/");
+    }
+  }, [nested]);
   
   return (
     <>
       <Routes>
         <Route path='/' element={<Home />}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/admin-panel" element={isAdmin ? <AdminPanel /> : <Dashboard />} />
+          <Route path="/admin-panel" element={user?.role.toLowerCase() === "admin" ? <AdminPanel /> : <Dashboard/>} />
         </Route>
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>
-      {/* {(isLoading || isPending) && <Loader text={text} />} */}
+      {(isLoading || isPending) && <Loader text={text} />}
       <Toaster position="top-right" />
     </>
   )

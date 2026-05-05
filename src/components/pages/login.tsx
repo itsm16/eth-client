@@ -3,9 +3,10 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { loginUser } from "@/utils/query-functions";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import useUserStore from "@/store/user-store";
 import Loader from "../loader";
+import { toast } from "sonner";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,6 +19,7 @@ export default function Login() {
     navigate("/")
   }, onSettled: () => {
     setLoading(false)
+    toast.success("Login successful")
   }})
   const handleSubmit = (e : any) => {
     e.preventDefault();
@@ -37,6 +39,7 @@ export default function Login() {
         <Button onClick={handleSubmit} className="mt-5" disabled={isPending}>Login</Button>
       </form>
       {(isPending || loading) && <Loader />}
+      <p className="mt-6">Don't have an account? <Link to="/register" className="text-blue-400 hover:underline">Register</Link></p>
     </div>
   )
 }

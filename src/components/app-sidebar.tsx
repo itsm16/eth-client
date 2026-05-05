@@ -35,7 +35,6 @@ const data = {
           title: "Dashboard",
           url: "/",
         },
-        true &&
         {
           title: "Admin Panel",
           url: "/admin-panel",

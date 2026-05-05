@@ -13,8 +13,10 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
+import useUserStore from "@/store/user-store"
 import { ChevronRightIcon } from "lucide-react"
-import { Link } from "react-router"
+import { useNavigate } from "react-router"
+import { toast } from "sonner"
 
 export function NavMain({
   items,
@@ -30,6 +32,17 @@ export function NavMain({
     }[]
   }[]
 }) {
+  const {user} = useUserStore()
+  const navigate = useNavigate()
+  const handleClick = (url: string) => {
+    if(url.includes("admin") && user?.role.toLowerCase() !== "admin"){
+      toast.error("You are not authorized to access this page")
+      navigate("/")
+      return
+    }
+    navigate(url)
+  }
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -52,11 +65,9 @@ export function NavMain({
               <CollapsibleContent>
                 <SidebarMenuSub>
                   {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
+                    <SidebarMenuSubItem onClick={() => handleClick(subItem.url)} key={subItem.title}>
                       <SidebarMenuSubButton asChild>
-                        <Link to={subItem.url}>
                           <span>{subItem.title}</span>
-                        </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   ))}

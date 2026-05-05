@@ -1,7 +1,7 @@
 import {create} from 'zustand'
 
 type UserStore = {
-    user: {id:number, email: string} | null,
+    user: {id:number, name:string, email: string, role: string} | null,
     setUser: (user : object) => void
 }
 

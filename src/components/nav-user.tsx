@@ -18,6 +18,7 @@ import { postLogout } from "@/utils/query-functions"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react"
 import { useNavigate } from "react-router"
+import { toast } from "sonner"
 
 export function NavUser({
   user,
@@ -38,6 +39,7 @@ export function NavUser({
     },
     onSettled: ()=>{
       navigate("/login")
+      toast.success("Logged out")
     }
   })
   const letter = user.email.slice(0, 1)
