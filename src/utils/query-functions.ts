@@ -56,6 +56,10 @@ const updateTaskStatus = async (projectId: string, taskId: string, status: strin
     return await axios.patch(`${API_BASE_URL}/api/projects/${projectId}/tasks/${taskId}/status`, {status}, {withCredentials: true});
 }
 
+const deleteTask = async (taskId: string) => {
+    return await axios.delete(`${API_BASE_URL}/api/projects/tasks/${taskId}`, {withCredentials: true});
+}
+
 // admin project management
 const getAllProjects = async () => {
     return await get('/projects');
@@ -92,6 +96,7 @@ export {
     getProjectTasks,
     createTask,
     updateTaskStatus,
+    deleteTask,
     getAllProjects,
     createProject,
     deleteProject,

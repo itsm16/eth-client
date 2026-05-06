@@ -40,6 +40,7 @@ export const AdminPanel = () => {
     onSuccess: () => {
       toast.success("Project created successfully")
       queryClient.invalidateQueries({ queryKey: ['allProjects'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
       setProjectName("")
     },
     onError: () => toast.error("Failed to create project")
@@ -50,6 +51,7 @@ export const AdminPanel = () => {
     onSuccess: () => {
       toast.success("Project deleted successfully")
       queryClient.invalidateQueries({ queryKey: ['allProjects'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
     },
     onError: () => toast.error("Failed to delete project")
   })

@@ -11,7 +11,7 @@ import {
 import { Textarea } from "./ui/textarea"
 import { Separator } from "./ui/separator"
 import { useEffect, useRef, useState } from "react"
-import { useMutation, useQuery} from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import useLoaderStore from "@/store/useLoaderStore"
 import { toast } from 'sonner'
 import { Input } from "./ui/input"
@@ -22,6 +22,7 @@ export function Modal(props: {projectId?: string}) {
   const [description, setDescription] = useState<string>("")
   const [taskName, setTaskName] = useState<string>("")
   const { setIsLoading } = useLoaderStore(state => state)
+  const queryClient = useQueryClient()
   const closeBtn = useRef<HTMLButtonElement | null>(null);
   const [selectedUser, setSelectedUser] = useState<{ id: string, name: string }>({ id: "", name: "" })
   const { data: users } = useQuery({ queryFn: getUsers, queryKey: ['users'], refetchOnWindowFocus: false })
@@ -29,6 +30,7 @@ export function Modal(props: {projectId?: string}) {
     mutationFn: createTask,
     onSuccess: () => {
       toast.success("Task created successfully")
+      queryClient.invalidateQueries({ queryKey: ["tasks", { id: props.projectId }] })
       closeBtn.current?.click()
     },
     onError: (error) => {

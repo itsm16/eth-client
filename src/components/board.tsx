@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Flame, Trash2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { updateTaskStatus } from "@/utils/query-functions";
+import { updateTaskStatus, deleteTask } from "@/utils/query-functions";
 import { toast } from "sonner";
 
 /* ---------------- CONSTANTS ---------------- */
@@ -57,16 +57,23 @@ export const Board = ({
       updateTaskStatus(projectId!, taskId, status),
     onSuccess: () => {
       toast.success("Task updated");
-      queryClient.invalidateQueries({ queryKey: ["projectTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks", { id: projectId }] });
     },
     onError: () => toast.error("Update failed"),
   });
 
-  const [cards, setCards] = useState<Card[]>([]);
+  const deleteTaskMutation = useMutation({
+    mutationFn: ({ taskId }: { taskId: string }) =>
+      deleteTask(taskId),
+    onSuccess: () => {
+      toast.success("Task deleted");
+      queryClient.invalidateQueries({ queryKey: ["tasks", { id: projectId }] });
+    },
+    onError: () => toast.error("Delete failed"),
+  });
 
-  useEffect(() => {
-    setCards(tasks.map(taskToCard));
-  }, [tasks]);
+  // Render directly from tasks prop for instant updates
+  const cards = tasks.map(taskToCard);
 
   return (
     <div className="flex gap-4 p-6">
@@ -75,12 +82,11 @@ export const Board = ({
           key={col}
           column={col}
           cards={cards}
-          setCards={setCards}
           updateStatusMutation={updateStatusMutation}
           projectId={projectId}
         />
       ))}
-      {admin && <BurnBarrel setCards={setCards} />}
+      {admin && <BurnBarrel deleteTaskMutation={deleteTaskMutation} />}
     </div>
   );
 };
@@ -89,7 +95,6 @@ export const Board = ({
 const Column = ({
   column,
   cards,
-  setCards,
   updateStatusMutation,
   projectId,
 }: any) => {
@@ -103,28 +108,22 @@ const Column = ({
     e.preventDefault();
     const cardId = e.dataTransfer.getData("cardId");
 
-    setCards((prev: Card[]) => {
-      const updated = prev.map((c) =>
-        c.id === cardId ? { ...c, column } : c
-      );
+    // Find the card in current state to check if it's actually moving
+    const movedCard = cards.find((c: Card) => c.id === cardId);
+    if (!movedCard || movedCard.column === column || !projectId) {
+      setActive(false);
+      return;
+    }
 
-      const movedCard = prev.find((c) => c.id === cardId);
-      if (!movedCard) return prev;
+    const statusMap: any = {
+      [COLUMNS.TODO]: "todo",
+      [COLUMNS.IN_PROGRESS]: "in_progress",
+      [COLUMNS.COMPLETED]: "done",
+    };
 
-      if (movedCard.column !== column && projectId) {
-        const statusMap: any = {
-          [COLUMNS.TODO]: "todo",
-          [COLUMNS.IN_PROGRESS]: "in_progress",
-          [COLUMNS.COMPLETED]: "done",
-        };
-
-        updateStatusMutation.mutate({
-          taskId: cardId,
-          status: statusMap[column],
-        });
-      }
-
-      return updated;
+    updateStatusMutation.mutate({
+      taskId: cardId,
+      status: statusMap[column],
     });
 
     setActive(false);
@@ -178,7 +177,7 @@ const Card = ({ card, handleDragStart }: any) => {
 };
 
 /* ---------------- DELETE ZONE ---------------- */
-const BurnBarrel = ({ setCards }: any) => {
+const BurnBarrel = ({ deleteTaskMutation }: any) => {
   const [active, setActive] = useState(false);
 
   return (
@@ -190,7 +189,7 @@ const BurnBarrel = ({ setCards }: any) => {
       onDragLeave={() => setActive(false)}
       onDrop={(e) => {
         const id = e.dataTransfer.getData("cardId");
-        setCards((prev: Card[]) => prev.filter((c) => c.id !== id));
+        deleteTaskMutation.mutate({ taskId: id });
         setActive(false);
       }}
       className={`w-64 h-40 flex items-center justify-center border rounded ${
