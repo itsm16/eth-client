@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { SelectOptions } from "../select-options"
@@ -6,6 +6,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Separator } from "../ui/separator"
 import { getAllProjects, createProject, deleteProject, getUsers, assignMember, removeMember, getProjectMembers } from "@/utils/query-functions"
+import useLoaderStore from "@/store/useLoaderStore"
 
 export const AdminPanel = () => {
   const [selectedProject, setSelectedProject] = useState({id: "", name: ""})
@@ -13,20 +14,22 @@ export const AdminPanel = () => {
   const [projectName, setProjectName] = useState("")
   
   const queryClient = useQueryClient()
+
+  const {setIsLoading} = useLoaderStore()
   
-  const { data: projects } = useQuery({ 
+  const { data: projects, isLoading: projectsLoading } = useQuery({ 
     queryFn: getAllProjects, 
     queryKey: ['allProjects'],
     refetchOnWindowFocus: false 
   })
   
-  const { data: users } = useQuery({ 
+  const { data: users, isLoading: usersLoading } = useQuery({ 
     queryFn: getUsers, 
     queryKey: ['users'],
     refetchOnWindowFocus: false 
   })
   
-  const { data: projectMembers } = useQuery({ 
+  const { data: projectMembers, isLoading: projectLoading } = useQuery({ 
     queryFn: getProjectMembers, 
     queryKey: ['projectMembers'],
     refetchOnWindowFocus: false 
@@ -74,6 +77,14 @@ export const AdminPanel = () => {
     },
     onError: () => toast.error("Failed to remove member")
   })
+
+  useEffect(() => {
+    setIsLoading(true, "Loading...")
+
+    if(!projectsLoading && !usersLoading && !projectLoading) {
+      setIsLoading(false, "")
+    }
+  }, [projectsLoading, usersLoading, projectLoading])
 
   return (
     <div className="h-full rounded-lg flex flex-col gap-2">
